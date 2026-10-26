@@ -1,0 +1,52 @@
+==== W4 API调用实验实录 ====
+云端API：火山方舟豆包API
+base_url：https://ark.cn-beijing.volces.com/api/v3
+模型：ep‑xxxxxx（填入你的接入点ID）
+
+【测试1：正常调用，默认参数】
+命令：python week4_api_bot.py "HSK4词汇量要求是多少"
+参数：temperature=0.7，max_tokens=800
+现象：网络正常，API成功返回回答；问答自动追加写入chat_log.txt。
+结果：运行正常。
+
+【测试2：temperature=0.0，低随机性】
+调用ask("什么是把字句", temperature=0.0, max_tokens=800)
+现象：输出非常稳定，多次提问答案几乎不变，创造性低，表述严谨。
+结果：符合预期；temperature趋近0，随机性降低。
+
+【测试3：temperature=1.5，高发散】
+调用ask("什么是把字句", temperature=1.5, max_tokens=800)
+现象：回答更加发散，两次输出差别大，表达更灵活。
+结果：符合预期；temperature越高，模型创造性越强。
+
+【测试4：max_tokens=15，观察截断】
+调用ask("什么是把字句", temperature=0.7, max_tokens=15)
+现象：输出被截断，句子不完整。
+结果：max_tokens限制最大输出长度，数值过小会截断文本。
+
+【测试5：故意错误，清空API‑key】
+操作：把.env里面ARK_API_KEY置空，运行脚本
+现象：脚本检测到密钥缺失，输出友好文字提示，而不是一大段底层堆栈报错。
+控制台输出：错误：未设置 DEEPSEEK_API_KEY / ARK_API_KEY。
+结果：符合预期，做了密钥前置检查。
+
+【测试6：断网模拟网络故障】
+操作：断开网络，运行脚本
+现象：抛出超时/连接异常，捕获APITimeoutError，给出网络错误提示。
+结果：异常可以被捕获，程序不会静默退出。
+
+==== Token与计费简单记录 ====
+示例提问：用一句话说明什么是把字句
+输入token：xx  输出token：xx
+费用简单计算：输入×单价 + 输出×单价
+
+==== 密钥安全自查小结 ====
+1. 密钥放在.env，代码使用os.getenv读取，没有硬编码sk‑字符串。
+2. .env写入.gitignore，git status看不到.env，不会提交到仓库。
+3. 截图、录屏不会泄露完整密钥。
+4. 如果密钥泄露，需要去平台后台吊销旧密钥，重新生成。
+
+==== 课后思考题记录 ====
+1. 同样问题两次回答不完全一样，是temperature带来随机性；想要结果稳定，将temperature调为0。
+2. 模型给出的教学数据不能直接抄进教案，大模型存在幻觉，必须查阅官方材料核验。
+3. 多轮对话需要不断把历史问答追加到messages列表。
