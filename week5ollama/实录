@@ -1,0 +1,41 @@
+==== W5 Ollama本地模型调用练习实录 ====
+本地模型：qwen2.5:0.5b
+接口地址：http://localhost:11434/api/chat
+
+【测试1：正常调用，默认参数】
+调用命令：python week5_local_bot.py "简述汉语把字句的教学难点"
+参数：temperature=0.7，max_tokens=800
+现象：Ollama服务正常运行，成功返回教学相关回答；回答长度适中；问答成功写入 local_chat.txt。
+结果：符合预期。
+
+【测试2：调低temperature，降低随机性】
+调用：local_ask("简述汉语把字句的教学难点", temperature=0.1, max_tokens=800)
+现象：输出内容更加固定，两次提问答案几乎一致，创造性弱，表述严谨。
+结果：符合预期；temperature越低，模型随机性越小。
+
+【测试3：调高temperature，增加发散】
+调用：local_ask("简述汉语把字句的教学难点", temperature=1.2, max_tokens=800)
+现象：回答更发散，句式变化大；两次提问得到的答案差异明显，部分表述偏口语化。
+结果：符合预期；temperature越高，创造性越强。
+
+【测试4：调小max_tokens，观察截断效果】
+调用：local_ask("简述汉语把字句的教学难点", temperature=0.7, max_tokens=30)
+现象：输出文本被强行截断，句子不完整，没有输出完整答案。
+结果：符合预期；max_tokens控制最大输出token，过小会截断文本。
+
+【测试5：Ollama服务关闭，网络连接故障】
+操作：退出/关闭Ollama后台服务，运行同样的提问脚本
+现象：抛出requests.exceptions.ConnectionError，程序捕获异常打印友好提示，不卡死、不返回空字符串。
+控制台输出：错误：无法连接Ollama，请确认ollama服务已启动
+结果：符合预期，异常正常捕获。
+
+【测试6：填写不存在的模型名称】
+环境变量 LOCAL_MODEL=not_exist:99b
+现象：请求返回HTTP 404，resp.raise_for_status()抛出异常，程序报错终止，不会返回空答案。
+结果：符合预期；错误模型可以被及时发现。
+
+==== 小结 ====
+1. timeout=60必不可少，模型首次加载耗时较长，不加超时会程序永久挂起。
+2. raise_for_status() 会把HTTP错误暴露出来，禁止静默吞异常。
+3. 模型名称通过环境变量读取，代码内不硬编码，切换模型只需修改.env。
+4. 本地Ollama不需要API密钥，断网环境依旧可以运行，适合隐私类教学任务。
